@@ -1,18 +1,20 @@
-import { Icon, Spinner } from "@components/index";
 import { computed } from "@legendapp/state";
-import { Flex, Text, Tooltip } from "@radix-ui/themes";
+import { useObservable } from "@legendapp/state/react";
+import { DropdownMenu, Flex, Heading, Text } from "@radix-ui/themes";
 import t from "@shared/config";
 import { useRouter, useRouterState } from "@tanstack/react-router";
+import { Sidebar } from "lucide-react";
+import { motion } from "motion/react";
 import type React from "react";
 import { useEffect } from "react";
 import { globalState$ } from "../state";
+import Icon from "./icon";
 
 type LayoutProps = {
   children?: React.ReactNode;
 };
 
 export default function Layout({ children }: LayoutProps) {
-  const utils = t.useUtils();
   const router = useRouterState();
   const navigation = useRouter();
   const { mutate: minimizeWindow } = t.window.minimize.useMutation();
@@ -20,90 +22,148 @@ export default function Layout({ children }: LayoutProps) {
   const { mutate: closeWindow } = t.window.closeWindow.useMutation();
 
   const isNotHome = computed(() => router.location.pathname === "/").get();
-
-  const { mutate: openPDF, isLoading: addingPDF } =
-    t.fs.openPdfFile.useMutation({
-      onSuccess: (data) => {
-        if (data.canceled) return;
-
-        utils.invalidate();
-      },
-    });
+  const sidebar = useObservable(false);
+  const colorMode = globalState$.colorMode.get();
 
   useEffect(() => {
-    if (globalState$.colorMode.get() === "dark") {
+    if (colorMode === "dark") {
       document.body.classList.add("dark");
     } else {
       document.body.classList.remove("dark");
     }
-  }, []);
+  }, [colorMode]);
 
   return (
     <Flex
       width="100%"
-      direction="column"
       grow="1"
-      className="transition bg-moonlightWhite dark:bg-moonlightBase"
+      className="transition bg-moonlightWhite w-full h-screen dark:bg-moonlightBase"
     >
-      <Flex
-        align="center"
-        justify="between"
-        className="px-2 py-2 border-b-1 border-b-solid border-b-neutral-50 dark:border-b-neutral-800"
+      <motion.div
+        animate={{
+          width: sidebar.get() ? "20%" : "0%",
+          display: sidebar.get() ? "flex" : "none",
+          opacity: sidebar.get() ? 1 : 0,
+        }}
+        transition={{
+          duration: 0.4,
+          bounce: 1,
+        }}
+        className="border-r-solid border-r-1 border-r-neutral-200 dark:border-r-neutral-800"
       >
-        <Flex align="center" justify="start" gap="4">
-          <Text size="2" className="text-moonlightStone" weight="medium">
-            Scribe
-          </Text>
-          <Flex gap="4" align="center" justify="center">
-            <Tooltip content="Open PDF">
-              <button
-                onClick={() => openPDF()}
-                className="flex items-center  space-x-2 justify-center text-moonlightSoft"
-              >
-                {addingPDF ? (
-                  <Spinner size={13} />
-                ) : (
-                  <Icon name="Plus" size={13} />
-                )}
-              </button>
-            </Tooltip>
-            <Flex align="center" justify="start" gap="3">
-              <button
-                onClick={() => navigation.history.back()}
-                className="text-moonlightSoft flex items-center justify-center"
-                disabled={isNotHome}
-              >
-                <Icon name="ArrowLeft" size={13} />
-              </button>
-              <button
-                className="text-moonlightSoft flex items-center justify-center"
-                onClick={() => navigation.history.forward()}
-              >
-                <Icon name="ArrowRight" size={13} />
-              </button>
-            </Flex>
+        <Flex
+          direction="column"
+          gap="2"
+          className="w-full h-full bg-neutral-50 dark:bg-moonlightFocusLow px-2 py-1"
+        >
+          <Flex align="center" justify="between">
+            <Heading size="4" className="text-moonlightIndigo">
+              Scribe
+            </Heading>
+            <MenuButton />
+          </Flex>
+          <Flex direction="column" grow="1">
+            content
+          </Flex>
+          <Flex align="center" justify="between" width="100%">
+            <button
+              onClick={() =>
+                globalState$.colorMode.set(
+                  colorMode === "dark" ? "light" : "dark",
+                )
+              }
+              className="px-2 py-2 dark:text-moonlightStone"
+            >
+              <Icon name={colorMode === "dark" ? "Sun" : "Moon"} size={13} />
+            </button>
           </Flex>
         </Flex>
-        <Flex id="drag-region" grow="1" p="2" />
-        <Flex align="center" justify="end" gap="3">
-          <button
-            className="px-1 text-moonlightStone"
-            onClick={() => minimizeWindow()}
-          >
-            <Icon name="Minus" size={12} />
-          </button>
-          <button
-            className="px-1 text-moonlightStone"
-            onClick={() => maximizeWindow()}
-          >
-            <Icon name="Maximize" size={12} />
-          </button>
-          <button className="px-1 text-red-500" onClick={() => closeWindow()}>
-            <Icon name="X" size={12} />
-          </button>
+      </motion.div>
+      <motion.div
+        animate={{
+          width: sidebar.get() ? "80%" : "100%",
+        }}
+        className="h-full flex flex-col"
+      >
+        <Flex
+          className="w-full border-b-solid border-b-1 border-b-neutral-100 dark:border-b-neutral-800"
+          align="center"
+          justify="between"
+        >
+          <Flex align="center" justify="start">
+            <button
+              onClick={() => sidebar.set(!sidebar.get())}
+              className="px-3 py-3 text-black dark:text-neutral-400"
+            >
+              <Sidebar size={13} />
+            </button>
+            <button
+              className="px-3 py-3 dark:disabled:text-neutral-700 dark:text-neutral-500"
+              disabled={isNotHome}
+              onClick={() => navigation.history.back()}
+            >
+              <Icon name="ArrowLeft" size={13} />
+            </button>
+            <button
+              className="px-3 py-3 dark:text-neutral-500"
+              onClick={() => navigation.history.forward()}
+            >
+              <Icon name="ArrowRight" size={13} />
+            </button>
+          </Flex>
+          <Flex id="drag-region" grow="1" p="2" />
+          <Flex align="center" justify="end">
+            <button
+              onClick={() => minimizeWindow()}
+              className="px-3 py-3 text-neutral-500 dark:text-neutral-400"
+            >
+              <Icon name="Minus" size={13} />
+            </button>
+            <button
+              onClick={() => maximizeWindow()}
+              className="px-3 py-3 text-neutral-500 dark:text-neutral-400"
+            >
+              <Icon name="Maximize" size={13} />
+            </button>
+            <button
+              onClick={() => closeWindow()}
+              className="px-3 py-3 text-red-500"
+            >
+              <Icon name="X" size={13} />
+            </button>
+          </Flex>
         </Flex>
-      </Flex>
-      {children}
+        <Flex grow="1">{children}</Flex>
+      </motion.div>
     </Flex>
   );
 }
+
+const MenuButton = () => {
+  const utils = t.useUtils();
+  const { mutate: openPDF } = t.fs.openPdfFile.useMutation({
+    onSuccess: (data) => {
+      if (data.canceled) return;
+
+      utils.invalidate();
+    },
+  });
+
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger>
+        <button className="px-1 py-2 dark:text-neutral-500">
+          <Icon name="EllipsisVertical" size={13} />
+        </button>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content size="1" color="indigo" variant="soft">
+        <DropdownMenu.Item onClick={() => openPDF()}>
+          <Flex align="center" justify="start" gap="2">
+            <Icon name="FolderOpen" size={12} />
+            <Text>Open File</Text>
+          </Flex>
+        </DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
+  );
+};

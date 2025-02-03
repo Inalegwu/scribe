@@ -9,7 +9,7 @@ export const generateThumbnail = (path: string) =>
                 catch: (cause) => new Error(String(cause)),
             });
 
-            const thumbnail = yield* Micro.tryPromise({
+            return yield* Micro.tryPromise({
                 try: async () => await conveter(1, { responseType: "base64" }),
                 catch: (cause) => new Error(String(cause)),
             }).pipe(
@@ -17,17 +17,7 @@ export const generateThumbnail = (path: string) =>
                     `data:image/png;base64,${response.base64}`
                 ),
             );
-
-            // const image = yield* Micro.tryPromise({
-            //     try: async () =>
-            //         await sharp(makeThumb.base64).toBuffer({
-            //             resolveWithObject: true,
-            //         }),
-            //     catch: (cause) => new Error(String(cause)),
-            // }).pipe(Micro.andThen((d) => convertBufferToImage(d.data)));
-
-            return thumbnail;
-        }),
+        }).pipe(Micro.orDie),
     );
 
 export const convertBufferToImage = (buffer: ArrayBufferLike) =>

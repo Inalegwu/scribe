@@ -3,7 +3,7 @@ import { persistObservable } from "@legendapp/state/persist";
 import { ObservablePersistLocalStorage } from "@legendapp/state/persist-plugins/local-storage";
 
 export const globalState$ = observable<GlobalState>({
-  colorMode: "dark",
+  colorMode: "light",
 });
 
 persistObservable(globalState$, {
