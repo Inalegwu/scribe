@@ -1,11 +1,6 @@
 @font-face {
   font-family: Font;
-  src: url("../assets/fonts/SF-Pro-Rounded-Medium.otf");
-}
-
-@font-face {
-  font-family: Font;
-  src: url("../assets/fonts/SF-Pro-Rounded-Regular.otf");
+  src: url("../assets/fonts/geist.ttf");
 }
 
 * {
@@ -50,4 +45,7 @@ button{
   background:none;
   border:none;
   cursor:pointer;
+  align-items: center;
+  justify-content: center;
+  outline:none;
 }

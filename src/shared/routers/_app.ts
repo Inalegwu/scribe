@@ -1,6 +1,6 @@
 import { publicProcedure, router } from "@src/trpc";
-import { shell } from "electron";
 import pkg from "../../../package.json";
+import { fileSystem } from "./filesystem";
 import { windowRouter } from "./window";
 
 export const appRouter = router({
@@ -8,9 +8,7 @@ export const appRouter = router({
   version: publicProcedure.query(async () => {
     return pkg.version;
   }),
-  gh: publicProcedure.mutation(async () => {
-    shell.openExternal("https://github.com/Inalegwu/ElectroStatic");
-  }),
+  fs: fileSystem,
 });
 
 export type AppRouter = typeof appRouter;

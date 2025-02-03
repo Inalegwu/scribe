@@ -1,6 +1,8 @@
-import { Icon } from "@components/index";
-import { Flex, Text } from "@radix-ui/themes";
+import { Icon, Spinner } from "@components/index";
+import { computed } from "@legendapp/state";
+import { Flex, Text, Tooltip } from "@radix-ui/themes";
 import t from "@shared/config";
+import { useRouter, useRouterState } from "@tanstack/react-router";
 import type React from "react";
 import { useEffect } from "react";
 import { globalState$ } from "../state";
@@ -10,10 +12,23 @@ type LayoutProps = {
 };
 
 export default function Layout({ children }: LayoutProps) {
-  const { data: appVer } = t.version.useQuery();
+  const utils = t.useUtils();
+  const router = useRouterState();
+  const navigation = useRouter();
   const { mutate: minimizeWindow } = t.window.minimize.useMutation();
   const { mutate: maximizeWindow } = t.window.maximize.useMutation();
   const { mutate: closeWindow } = t.window.closeWindow.useMutation();
+
+  const isNotHome = computed(() => router.location.pathname === "/").get();
+
+  const { mutate: openPDF, isLoading: addingPDF } =
+    t.fs.openPdfFile.useMutation({
+      onSuccess: (data) => {
+        if (data.canceled) return;
+
+        utils.invalidate();
+      },
+    });
 
   useEffect(() => {
     if (globalState$.colorMode.get() === "dark") {
@@ -24,36 +39,67 @@ export default function Layout({ children }: LayoutProps) {
   }, []);
 
   return (
-    <Flex width="100%" direction="column" grow="1" className="transition">
+    <Flex
+      width="100%"
+      direction="column"
+      grow="1"
+      className="transition bg-moonlightWhite dark:bg-moonlightBase"
+    >
       <Flex
         align="center"
         justify="between"
-        width="100%"
-        className="absolute top-0 left-0 px-2 py-2"
+        className="px-2 py-2 border-b-1 border-b-solid border-b-neutral-50 dark:border-b-neutral-800"
       >
-        <Text className="text-neutral-300 font-extrabold tracking-wider font-[15px]">
-          ElectroStatic
-        </Text>
-        <Flex
-          id="drag-region"
-          grow="1"
-          align="center"
-          justify="center"
-          direction="row"
-        >
-          <Text size="2" className=" text-neutral-300">
-            Version {appVer}
+        <Flex align="center" justify="start" gap="4">
+          <Text size="2" className="text-moonlightStone" weight="medium">
+            Scribe
           </Text>
+          <Flex gap="4" align="center" justify="center">
+            <Tooltip content="Open PDF">
+              <button
+                onClick={() => openPDF()}
+                className="flex items-center  space-x-2 justify-center text-moonlightSoft"
+              >
+                {addingPDF ? (
+                  <Spinner size={13} />
+                ) : (
+                  <Icon name="Plus" size={13} />
+                )}
+              </button>
+            </Tooltip>
+            <Flex align="center" justify="start" gap="3">
+              <button
+                onClick={() => navigation.history.back()}
+                className="text-moonlightSoft flex items-center justify-center"
+                disabled={isNotHome}
+              >
+                <Icon name="ArrowLeft" size={13} />
+              </button>
+              <button
+                className="text-moonlightSoft flex items-center justify-center"
+                onClick={() => navigation.history.forward()}
+              >
+                <Icon name="ArrowRight" size={13} />
+              </button>
+            </Flex>
+          </Flex>
         </Flex>
-        <Flex align="center" justify="end" gap="5">
-          <button className="text-neutral-50" onClick={() => minimizeWindow()}>
-            <Icon name="Minimize" size={10} />
+        <Flex id="drag-region" grow="1" p="2" />
+        <Flex align="center" justify="end" gap="3">
+          <button
+            className="px-1 text-moonlightStone"
+            onClick={() => minimizeWindow()}
+          >
+            <Icon name="Minus" size={12} />
           </button>
-          <button className="text-neutral-50" onClick={() => maximizeWindow()}>
-            <Icon name="Maximize" size={10} />
+          <button
+            className="px-1 text-moonlightStone"
+            onClick={() => maximizeWindow()}
+          >
+            <Icon name="Maximize" size={12} />
           </button>
-          <button onClick={() => closeWindow()} className="text-red-600">
-            <Icon name="X" size={10} />
+          <button className="px-1 text-red-500" onClick={() => closeWindow()}>
+            <Icon name="X" size={12} />
           </button>
         </Flex>
       </Flex>

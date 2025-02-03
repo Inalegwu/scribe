@@ -28,7 +28,8 @@
       },
       "suspicious": {
         "recommended": true,
-        "noArrayIndexKey": "warn"
+        "noArrayIndexKey": "warn",
+        "noShadowRestrictedNames":"off"
       },
       "a11y": {
         "useButtonType": "off"

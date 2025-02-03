@@ -6,5 +6,5 @@ node_modules
 out
 *.vite.config.*.mjs
 *.gen.ts
-app_db
+*-db
 drizzle
