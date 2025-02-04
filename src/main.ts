@@ -1,10 +1,10 @@
 import { createContext } from "@shared/context";
 import { appRouter } from "@shared/routers/_app";
+import * as String from "effect/String";
 import { app, BrowserWindow, screen } from "electron";
 import { createIPCHandler } from "electron-trpc/main";
 import { join } from "node:path";
 import pkg from "../package.json";
-import * as String from "effect/String";
 
 app.setName(String.capitalize(pkg.name));
 
@@ -13,9 +13,9 @@ const createWindow = () => {
   const mainWindow = new BrowserWindow({
     minWidth: 500,
     minHeight: 500,
-    height: height - 100,
-    width: width - 100,
-    frame:false,
+    height: height - 50,
+    width: width - 50,
+    frame: false,
     webPreferences: {
       sandbox: false,
       preload: join(__dirname, "../preload/preload.js"),

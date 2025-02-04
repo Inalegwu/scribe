@@ -1,6 +1,6 @@
 import { computed } from "@legendapp/state";
 import { useObservable } from "@legendapp/state/react";
-import { DropdownMenu, Flex, Heading, Text } from "@radix-ui/themes";
+import { Dialog, DropdownMenu, Flex, Heading, Text } from "@radix-ui/themes";
 import t from "@shared/config";
 import { useRouter, useRouterState } from "@tanstack/react-router";
 import { Sidebar } from "lucide-react";
@@ -72,10 +72,11 @@ export default function Layout({ children }: LayoutProps) {
                   colorMode === "dark" ? "light" : "dark",
                 )
               }
-              className="px-2 py-2 dark:text-moonlightStone"
+              className="px-1 py-2 dark:text-moonlightStone"
             >
               <Icon name={colorMode === "dark" ? "Sun" : "Moon"} size={13} />
             </button>
+            <SettingsButton />
           </Flex>
         </Flex>
       </motion.div>
@@ -165,5 +166,20 @@ const MenuButton = () => {
         </DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu.Root>
+  );
+};
+
+const SettingsButton = () => {
+  return (
+    <Dialog.Root>
+      <Dialog.Trigger>
+        <button className="px-1 py-2 dark:text-moonlightStone">
+          <Icon name="Settings" size={13} />
+        </button>
+      </Dialog.Trigger>
+      <Dialog.Content className="bg-moonlightWhite dark:bg-moonlightFocusLow text-black dark:text-moonlightWhite">
+        body
+      </Dialog.Content>
+    </Dialog.Root>
   );
 };
