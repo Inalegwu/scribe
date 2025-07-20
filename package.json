@@ -3,12 +3,12 @@
   "description": "PDF Reader",
   "version": "0.0.1",
   "author": {
-    "email": "youremail@provider.com",
-    "name": "your_name"
+    "email": "ikwueinalegwu@gmail.com",
+    "name": "Ikwue Inalegwu Sipho"
   },
   "license": "MIT",
   "repository": {
-    "url": "https://github.com/Inalegwu/ElectroStatic.git"
+    "url": "https://github.com/Inalegwu/Scribe.git"
   },
   "main": "out/main/main.js",
   "scripts": {
