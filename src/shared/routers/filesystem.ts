@@ -19,32 +19,10 @@ export const fileSystem = router({
       };
     }
 
-    console.log(_.filePaths);
-
     return {
       canceled: null,
       success: true,
       file: _.filePaths.at(0),
     };
-  }),
-  getOpenedFiles: publicProcedure.query(async ({ ctx }) => {
-    const files = await ctx.store
-      .allDocs({
-        include_docs: true,
-      })
-      .then((res) =>
-        res.rows.map((row) => ({
-          id: row.id,
-          fileName: row.doc?.fileName!,
-          filePath: row.doc?.filePath!,
-          lastAccessed: row.doc?.lastAccessed!,
-          thumbnail: row.doc?.thumbnail!,
-        })),
-      )
-      .then((files) => files.filter((file) => file.fileName === undefined));
-
-    console.log({ files });
-
-    return files;
   }),
 });

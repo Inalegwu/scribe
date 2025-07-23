@@ -11,6 +11,10 @@ declare global {
     fileName: string;
     lastAccessed: string;
   };
+
+  export type DeeplinkChannel = {
+    path: string;
+  };
 }
 
 export type {};
