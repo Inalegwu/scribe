@@ -1,7 +1,8 @@
 import { computed } from "@legendapp/state";
 import { useObservable, useObserveEffect } from "@legendapp/state/react";
-import { Dialog, DropdownMenu, Flex, Heading, Text } from "@radix-ui/themes";
+import { DropdownMenu, Flex, Heading, Text } from "@radix-ui/themes";
 import t from "@shared/config";
+import { parseFileNameFromPath } from "@src/shared/utils";
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { capitalize } from "effect/String";
 import { Sidebar } from "lucide-react";
@@ -11,6 +12,7 @@ import { useEffect } from "react";
 import { globalState$ } from "../state";
 import Icon from "./icon";
 import ThemeButton from "./theme-button";
+import Toast, { toast } from "./toast";
 
 type LayoutProps = {
   children?: React.ReactNode;
@@ -27,7 +29,7 @@ export default function Layout({ children }: LayoutProps) {
   const sidebar = useObservable(false);
   const colorMode = globalState$.colorMode.get();
 
-  console.log({ isHome });
+  console.log(globalState$.activeFileName.get());
 
   useObserveEffect(() => {
     if (globalState$.colorMode.get() === "dark") {
@@ -65,24 +67,40 @@ export default function Layout({ children }: LayoutProps) {
       >
         <Flex
           direction="column"
-          className="border-r-1 border-r-solid border-r-neutral-100 dark:border-r-moonlightSoft/20 w-full h-full"
+          className="border-r-1 bg-neutral-100 dark:bg-moonlightOverlay border-r-solid border-r-neutral-100 dark:border-r-moonlightSoft/20 w-full h-full"
         >
           {/* main body */}
-          <Flex direction="column" grow="1">
+          <Flex gap="2" direction="column" grow="1">
             <Flex className="p-2" align="center" justify="between">
               <Heading size="4" className="text-moonlightIndigo">
                 Scribe
               </Heading>
               <ActionButton />
             </Flex>
+            <Flex direction="column">
+              <Link
+                href="/"
+                className="p-3 flex items-center justify-start space-x-2"
+              >
+                <Icon name="House" size={12} />
+                <Text size="2">Home</Text>
+              </Link>
+              <Link
+                href="/"
+                className="p-3 flex items-center justify-start space-x-2"
+              >
+                <Icon name="History" size={12} />
+                <Text size="2">History</Text>
+              </Link>
+            </Flex>
           </Flex>
           <Flex className="p-2" align="center" justify="between">
-            <Link
+            {/* <Link
               href="/settings"
               className="px-2 py-2 flex items-center justify-center rounded-md dark:text-moonlightText cursor-pointer hover:bg-neutral-400/10 dark:hover:bg-neutral-400/5"
             >
               <Icon name="Settings2" size={12} />
-            </Link>
+            </Link> */}
           </Flex>
         </Flex>
       </motion.div>
@@ -141,7 +159,11 @@ export default function Layout({ children }: LayoutProps) {
                         ? "History"
                         : routerState.location.pathname === "/settings"
                           ? "Settings"
-                          : "Exploring",
+                          : routerState.location.pathname.includes("/editor")
+                            ? `${globalState$.activeFileName.get()} | ${capitalize(
+                                globalState$.editorState.get(),
+                              )}`
+                            : "Exploring",
                   )}
                 </Text>
               </Flex>
@@ -177,17 +199,30 @@ export default function Layout({ children }: LayoutProps) {
           {children}
         </Flex>
       </motion.div>
+      <Toast />
     </Flex>
   );
 }
 
 const ActionButton = () => {
-  const utils = t.useUtils();
+  const router = useRouter();
   const { mutate: openPDF } = t.fs.openPdfFile.useMutation({
     onSuccess: (data) => {
       if (data.canceled) return;
 
-      utils.invalidate();
+      if (data.file === undefined) {
+        toast.error("Something went wrong while opening file");
+        return;
+      }
+
+      globalState$.activeFileName.set(parseFileNameFromPath(data.file));
+
+      router.navigate({
+        to: "/editor/$path",
+        params: {
+          path: data.file,
+        },
+      });
     },
   });
 
@@ -198,7 +233,11 @@ const ActionButton = () => {
           <Icon name="EllipsisVertical" size={12} />
         </button>
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content size="1" variant="soft">
+      <DropdownMenu.Content
+        className="bg-white dark:bg-moonlightOverlay"
+        size="1"
+        variant="soft"
+      >
         <DropdownMenu.Item onClick={() => openPDF()}>
           <Flex align="center" justify="start" gap="2">
             <Icon name="FolderOpen" size={11} />
@@ -210,13 +249,13 @@ const ActionButton = () => {
   );
 };
 
-const SettingsButton = () => {
-  return (
-    <Dialog.Root>
-      <Dialog.Trigger></Dialog.Trigger>
-      <Dialog.Content className="bg-moonlightWhite dark:bg-moonlightFocusLow text-black dark:text-moonlightWhite">
-        body
-      </Dialog.Content>
-    </Dialog.Root>
-  );
-};
+// const SettingsButton = () => {
+//   return (
+//     <Dialog.Root>
+//       <Dialog.Trigger></Dialog.Trigger>
+//       <Dialog.Content className="bg-moonlightWhite dark:bg-moonlightFocusLow text-black dark:text-moonlightWhite">
+//         body
+//       </Dialog.Content>
+//     </Dialog.Root>
+//   );
+// };

@@ -1,7 +1,5 @@
 import { publicProcedure, router } from "@src/trpc";
-import { Console, Effect, Micro } from "effect";
 import { dialog } from "electron";
-import { generateThumbnail, parseFileNameFromPath } from "../utils";
 
 export const fileSystem = router({
   openPdfFile: publicProcedure.mutation(async ({ ctx }) => {
@@ -10,6 +8,7 @@ export const fileSystem = router({
       defaultPath: ctx.app.getPath("downloads"),
       title: "Open PDF",
       filters: [{ name: "PDF File", extensions: ["pdf"] }],
+      properties: ["dontAddToRecent", "openFile"],
     });
 
     if (_.canceled) {
@@ -20,44 +19,32 @@ export const fileSystem = router({
       };
     }
 
-    Console.log(_.filePaths);
-
-    for (const file of _.filePaths) {
-      await ctx.store.put({
-        fileName: parseFileNameFromPath(file),
-        filePath: file,
-        thumbnail: await generateThumbnail(file).pipe(Effect.runPromise),
-        lastAccessed: new Date().toString(),
-      });
-    }
+    console.log(_.filePaths);
 
     return {
       canceled: null,
       success: true,
-      files: _.filePaths.map((path) => ({
-        path,
-      })),
+      file: _.filePaths.at(0),
     };
   }),
-  getOpenedFiles: publicProcedure.query(
-    async ({ ctx }) =>
-      await Micro.runPromise(
-        Micro.try({
-          try: () =>
-            ctx.store.allDocs({ include_docs: true }).then((response) =>
-              response.rows.map(
-                (row) =>
-                  ({
-                    id: row.doc?._id!,
-                    filePath: row.doc?.filePath!,
-                    fileName: row.doc?.fileName!,
-                    thumbnail: row.doc?.thumbnail!,
-                    lastAccessed: row.doc?.lastAccessed!,
-                  }) satisfies PDF & { id: string },
-              ),
-            ),
-          catch: (cause) => new Error(String(cause)),
-        }),
-      ),
-  ),
+  getOpenedFiles: publicProcedure.query(async ({ ctx }) => {
+    const files = await ctx.store
+      .allDocs({
+        include_docs: true,
+      })
+      .then((res) =>
+        res.rows.map((row) => ({
+          id: row.id,
+          fileName: row.doc?.fileName!,
+          filePath: row.doc?.filePath!,
+          lastAccessed: row.doc?.lastAccessed!,
+          thumbnail: row.doc?.thumbnail!,
+        })),
+      )
+      .then((files) => files.filter((file) => file.fileName === undefined));
+
+    console.log({ files });
+
+    return files;
+  }),
 });

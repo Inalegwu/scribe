@@ -14,6 +14,7 @@ import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import "virtual:uno.css";
 import ErrorComponent from "./components/error-component";
+import { ToastProvider } from "./components/toast";
 import "./defaults.css";
 import { routeTree } from "./routeTree.gen";
 
@@ -49,7 +50,14 @@ if (!rootElement?.innerHTML) {
       <t.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <Theme radius="medium" accentColor="gray" grayColor="gray">
-            <RouterProvider router={router} />
+            <ToastProvider
+              context={{
+                duration: 5000,
+                position: "bottom-center",
+              }}
+            >
+              <RouterProvider router={router} />
+            </ToastProvider>
           </Theme>
         </QueryClientProvider>
       </t.Provider>

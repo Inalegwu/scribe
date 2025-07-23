@@ -6,6 +6,8 @@ import { createIPCHandler } from "electron-trpc/main";
 import { join } from "node:path";
 import pkg from "../package.json";
 
+process.env.DOCUMENTS_DIR = join(app.getPath("documents"));
+
 app.setName(String.capitalize(pkg.name));
 
 const createWindow = () => {
@@ -38,6 +40,14 @@ const createWindow = () => {
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
+
+  // fsWatcher({
+  //   name: "fs-watcher",
+  // })
+  //   .on("message", console.log)
+  //   .postMessage({
+  //     start: true,
+  //   });
 
   // mainWindow.webContents.openDevTools({ mode: "bottom" });
 };

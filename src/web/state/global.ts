@@ -4,6 +4,8 @@ import { ObservablePersistLocalStorage } from "@legendapp/state/persist-plugins/
 
 export const globalState$ = observable<GlobalState>({
   colorMode: "light",
+  editorState: "read",
+  activeFileName: null,
 });
 
 persistObservable(globalState$, {

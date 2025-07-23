@@ -1,6 +1,8 @@
 declare global {
   export type GlobalState = {
     colorMode: "dark" | "light";
+    editorState: "edit" | "read";
+    activeFileName: string | null;
   };
 
   export type PDF = {
